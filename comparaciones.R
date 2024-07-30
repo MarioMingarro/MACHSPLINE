@@ -86,8 +86,9 @@ tmax <- get_daily_climate(coords,
 tmax_summary <- tmax %>%
   group_by(ID_coords) %>%  # Agrupamos por la columna 'ID_coords'
   summarise(TMAX = mean(Tmax, na.rm = TRUE)) 
-all <- cbind(all, tmax_summary)
-all <- all[,-8]
+all3 <- cbind(kk, tmax_summary)
+all3 <- all3[,-11]
+colnames(all3) <- c("indicativo", "ID", "X", "Y", "ALT_SLOPE_ASPECT_GEOMORPHONS_TWI", "ALT_SLOPE_ASPECT_TWI", "ALT_SLOPE_TWI", "MEAN_MACH", "MICROCLIMA", "AEMET","EASYCLIMATE" )
 
 library(climaemet)
 aemet_api_key("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJpb19taW5nYXJyb0Bob3RtYWlsLmNvbSIsImp0aSI6IjUyNDAzNzBiLTU4ZWUtNDJmZC1iM2MxLTZjOGJiZDkxN2MyMyIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNTYwNDM5OTU4LCJ1c2VySWQiOiI1MjQwMzcwYi01OGVlLTQyZmQtYjNjMS02YzhiYmQ5MTdjMjMiLCJyb2xlIjoiIn0.AjAxutpJ7B5IdKrHluzX0mMp8VKpbIMIPOUsdzsrRTc", install = TRUE,overwrite=TRUE)
@@ -102,18 +103,24 @@ AEMET <- AEMET_stations %>%
 
 kk <- left_join(all2, AEMET )
 
+raster <- raster::stack("B:/A_ALBERT/CLIMA_DOWNSCALING/TERRACLIMATE/TerraClimate_tmax_2012.nc")
+ras <- raster[[8]]
+
+
+names(ras) <- paste0("TERRACLIMATE")
+TERRACLIMATE <- terra::extract(ras, puntos_sp)
+
+all3 <- cbind(all3, TERRACLIMATE)
+
 #------------------------
-
-
-
 
 
 
 
 library(ggplot2)
 library(tidyr)
-all_long <- kk %>%
-  dplyr::select(ID, ALT_SLOPE_ASPECT_GEOMORPHONS_TWI, ALT_SLOPE_ASPECT_TWI, ALT_SLOPE_TWI, MEAN_MACH, MICROCLIMA, AEMET) %>%
+all_long <- all3 %>%
+  dplyr::select(ID, ALT_SLOPE_ASPECT_GEOMORPHONS_TWI, ALT_SLOPE_ASPECT_TWI, ALT_SLOPE_TWI, MEAN_MACH, MICROCLIMA, AEMET, EASYCLIMATE, TERRACLIMATE) %>%
   tidyr::gather(key = "Variable", value = "Valor", -ID)
 
 # Crear el gráfico
@@ -123,7 +130,8 @@ ggplot(all_long, aes(x = ID, y = Valor, color = Variable)) +
        x = "ID del Punto",
        y = "Valor del Raster",
        color = "Variable") +
-  theme_minimal()
+  theme_minimal()+
+  scale_color_brewer(palette = "Spectral")
 
 cor_resultados <- cor(kk[, c("ALT_SLOPE_ASPECT_GEOMORPHONS_TWI", "ALT_SLOPE_ASPECT_TWI", "ALT_SLOPE_TWI", "MEAN_MACH", "MICROCLIMA", "AEMET")], use = "complete.obs")
 print(cor_resultados)
@@ -132,8 +140,8 @@ library(tidyr)
 library(dplyr)
 
 # Transformación al formato largo
-resultados_long <- all %>%
-  select(ID, ALT_SLOPE_ASPECT_GEOMORPHONS_TWI, ALT_SLOPE_ASPECT_TWI, ALT_SLOPE_TWI, MICROCLIMA) %>%
+resultados_long <- all3 %>%
+  dplyr::select(ID, ALT_SLOPE_ASPECT_GEOMORPHONS_TWI, ALT_SLOPE_ASPECT_TWI, ALT_SLOPE_TWI, MEAN_MACH, MICROCLIMA, AEMET, EASYCLIMATE, TERRACLIMATE) %>%
   pivot_longer(cols = -ID, names_to = "Variable", values_to = "Valor")
 
 # Conversión de 'Variable' a factor
