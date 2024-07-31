@@ -115,13 +115,13 @@ aemet_api_key("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJpb19taW5nYXJyb0Bob3RtYWlsLmNv
 
 AEMET_stations <- aemet_daily_clim(
   start = "2012-08-01", end = "2012-08-31",
-  return_sf = FALSE
-)
+  return_sf = FALSE)
 
 AEMET <- AEMET_stations %>% 
   group_by(indicativo) %>% 
   summarise(AEMET = mean(tmax, na.rm = TRUE)) 
 
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
 AEMET <- left_join(puntos, AEMET, by=c("indictv" = "indicativo"))
 AEMET <- as.data.frame(AEMET)
 AEMET <- AEMET[, c(2,26,27,10)]
@@ -153,7 +153,7 @@ tmax <-  cbind(machispline, easyclimate, AEMET, terraclimate, microclima1 )
 
 tmax <- tmax[,c(1:7,11,15,19,23)]
 
-colnames(all) <- c("ID", "X", "Y", "Machispline_A_S_A_G_T", 
+colnames(tmax) <- c("ID", "X", "Y", "Machispline_A_S_A_G_T", 
                    "Machispline_A_S_A_T", "Machispline_A_S_T", 
                    "Mean_Machispline", "Easyclimate", 
                    "AEMET","Terraclimate", "Microclima_NCE")
@@ -373,6 +373,7 @@ cor_resultados <- cor(all[, c("Machispline_A_S_A_G_T",
                               "Mean_Machispline", "Easyclimate", 
                               "AEMET","Terraclimate", "Microclima_NCE")], use = "complete.obs")
 print(cor_resultados)
+
 
 
 ## Anova ----
