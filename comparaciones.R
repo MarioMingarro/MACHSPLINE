@@ -331,7 +331,6 @@ all_long <- all %>%
 # Grafico TMAX por estacion
 ggplot(all_long, aes(x = N, y = Valor, color = Variable)) +
   geom_line() +
-  geom_smooth(method = lm, se = F)+
   labs(x = "ID Estación",
        y = "Tmin (ºC)",
        color = "Variable") +
