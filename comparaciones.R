@@ -7,12 +7,17 @@ library(ggplot2)
 library(tidyr)
 library(dplyr)
 library(emmeans)
+library(ggrepel)
+
+
+# Estaciones por alturas y modelo lineal ajustado a la elevación
 
 # TMAX ----
-# Microclima 1 ----
-# Sin efectos de la costa
+# Microclima URBAN NCE ----
+# Urban and built-up sin efectos de la costa
+
 # Establece la ruta a la carpeta que contiene los archivos raster
-raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/NCOASTAL_H7/TMAX/"
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/NCOASTAL_H7/URBAN/TMAX/"
 
 # Lee los puntos desde un archivo
 puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
@@ -41,34 +46,137 @@ for (i in 1:length(raster_files)) {
 
 resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
 
-microclima1 <- resultados[,c(1,2,3,104)]
-colnames(microclima1) <- c("ID","X", "Y", "Microclima_1")
+microclima_URBAN_NCE <- resultados[,c(1,2,3,104)]
+colnames(microclima_URBAN_NCE) <- c("ID","X", "Y", "Micr_URBAN_NCE")
 
 # Eliminar objetos 
 rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
 
-# Microclima 2 ----
-# 
-# raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/COASTAL_H7/TMAX/"
-# puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
-# puntos_sp <- as(puntos, "Spatial")
-# raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
-# resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
-# colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
-# 
-# resultados$ID <- puntos$indictv
-# resultados$X <- st_coordinates(puntos)[,1]
-# resultados$Y <- st_coordinates(puntos)[,2]
-# 
-# for (i in 1:length(raster_files)) {
-#   raster_layer <- raster(raster_files[i])
-#   valores <- terra::extract(raster_layer, puntos_sp)
-#   resultados[, i + 3] <- valores
-# }
-# 
-# resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
-# microclima2 <- resultados[,c(1,2,3,104)]
+# Microclima URBAN CE ----
+# Urban and built-up con efectos de la costa
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/COASTAL_H7/URBAN/TMAX/"
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
+puntos_sp <- as(puntos, "Spatial")
+raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
+resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
+colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
 
+resultados$ID <- puntos$indictv
+resultados$X <- st_coordinates(puntos)[,1]
+resultados$Y <- st_coordinates(puntos)[,2]
+
+for (i in 1:length(raster_files)) {
+  raster_layer <- raster(raster_files[i])
+  valores <- terra::extract(raster_layer, puntos_sp)
+  resultados[, i + 3] <- valores
+}
+
+resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
+microclima_URBAN_CE <- resultados[,c(1,2,3,104)]
+colnames(microclima_URBAN_CE) <- c("ID","X", "Y", "Micr_URBAN_CE")
+
+rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
+
+# Microclima ENF NCE ----
+# Evergreen Needleleaf Forest sin efectos de la costa
+
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/NCOASTAL_H7/ENF/TMAX/"
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
+puntos_sp <- as(puntos, "Spatial")
+raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
+
+resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
+colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
+
+resultados$ID <- puntos$indictv
+resultados$X <- st_coordinates(puntos)[,1]
+resultados$Y <- st_coordinates(puntos)[,2]
+
+for (i in 1:length(raster_files)) {
+  raster_layer <- raster(raster_files[i])
+  valores <- terra::extract(raster_layer, puntos_sp)
+  resultados[, i + 3] <- valores
+}
+
+resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
+
+microclima_ENF_NCE <- resultados[,c(1,2,3,104)]
+colnames(microclima_ENF_NCE) <- c("ID","X", "Y", "Micr_ENF_NCE")
+
+rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
+
+# Microclima ENF CE ----
+# Evergreen Needleleaf Forest con efectos de la costa
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/COASTAL_H7/ENF/TMAX/"
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
+puntos_sp <- as(puntos, "Spatial")
+raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
+resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
+colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
+
+resultados$ID <- puntos$indictv
+resultados$X <- st_coordinates(puntos)[,1]
+resultados$Y <- st_coordinates(puntos)[,2]
+
+for (i in 1:length(raster_files)) {
+  raster_layer <- raster(raster_files[i])
+  valores <- terra::extract(raster_layer, puntos_sp)
+  resultados[, i + 3] <- valores
+}
+
+resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
+microclima_ENF_CE <- resultados[,c(1,2,3,104)]
+colnames(microclima_ENF_CE) <- c("ID","X", "Y", "Micr_ENF_CE")
+rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
+
+# Microclima OS NCE ----
+# Open shrublands sin efectos de la costa
+
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/NCOASTAL_H7/SRUBLAND/TMAX/"
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
+puntos_sp <- as(puntos, "Spatial")
+raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
+resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
+colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
+resultados$ID <- puntos$indictv
+resultados$X <- st_coordinates(puntos)[,1]
+resultados$Y <- st_coordinates(puntos)[,2]
+
+for (i in 1:length(raster_files)) {
+  raster_layer <- raster(raster_files[i])
+  valores <- terra::extract(raster_layer, puntos_sp)
+  resultados[, i + 3] <- valores
+}
+
+resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
+
+microclima_OS_NCE <- resultados[,c(1,2,3,104)]
+colnames(microclima_OS_NCE) <- c("ID","X", "Y", "Micr_OS_NCE")
+rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
+
+# Microclima OS CE ----
+# Open shrublands con efectos de la costa
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/COASTAL_H7/SRUBLAND/TMAX/"
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
+puntos_sp <- as(puntos, "Spatial")
+raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
+resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
+colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
+
+resultados$ID <- puntos$indictv
+resultados$X <- st_coordinates(puntos)[,1]
+resultados$Y <- st_coordinates(puntos)[,2]
+
+for (i in 1:length(raster_files)) {
+  raster_layer <- raster(raster_files[i])
+  valores <- terra::extract(raster_layer, puntos_sp)
+  resultados[, i + 3] <- valores
+}
+
+resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
+microclima_OS_CE <- resultados[,c(1,2,3,104)]
+colnames(microclima_OS_CE) <- c("ID","X", "Y", "Micr_OS_CE")
+rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
 
 # Machispline ----
 raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/RESULTADOS_MACHSPLINE/tmax_down"
@@ -148,25 +256,30 @@ colnames(terraclimate) <- c("ID","X", "Y", "Terraclimate")
 rm(puntos, puntos_sp)
 
 
-# Unificar
-tmax <-  cbind(machispline, easyclimate, AEMET, terraclimate, microclima1 )
-
-tmax <- tmax[,c(1:7,11,15,19,23)]
+# Unificar ----
+tmax <-  cbind(machispline, AEMET, terraclimate, microclima_ENF_CE,
+               microclima_ENF_NCE,microclima_OS_CE,microclima_URBAN_CE,
+               microclima_URBAN_NCE)
+colnames(tmax)
+tmax <- tmax[,c(1:7,11,15,19,23,27,31,35)]
 
 colnames(tmax) <- c("ID", "X", "Y", "Machispline_A_S_A_G_T", 
                    "Machispline_A_S_A_T", "Machispline_A_S_T", 
-                   "Mean_Machispline", "Easyclimate", 
-                   "AEMET","Terraclimate", "Microclima_NCE")
+                   "Mean_Machispline", "AEMET","Terraclimate",
+                   "microclima_ENF_CE", "microclima_ENF_NCE",
+                   "microclima_OS_CE", "microclima_URBAN_CE",
+                   "microclima_URBAN_NCE")
 
 
 tmax <- mutate(tmax, "N" = seq(1, 96,1))
 #write.csv2(tmax, "B:/A_ALBERT/ALL_TMAX_8_2012.csv")
 
 # TMIN ----
-# Microclima 1 ----
-# Sin efectos de la costa
+# Microclima URBAN NCE ----
+# Urban and built-up sin efectos de la costa
+
 # Establece la ruta a la carpeta que contiene los archivos raster
-raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/NCOASTAL_H7/TMIN/"
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/NCOASTAL_H7/URBAN/TMIN/"
 
 # Lee los puntos desde un archivo
 puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
@@ -195,33 +308,137 @@ for (i in 1:length(raster_files)) {
 
 resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
 
-microclima1 <- resultados[,c(1,2,3,104)]
-colnames(microclima1) <- c("ID","X", "Y", "Microclima_1")
+microclima_URBAN_NCE <- resultados[,c(1,2,3,104)]
+colnames(microclima_URBAN_NCE) <- c("ID","X", "Y", "Micr_URBAN_NCE")
 
 # Eliminar objetos 
 rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
 
-# Microclima 2 ----
+# Microclima URBAN CE ----
+# Urban and built-up con efectos de la costa
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/COASTAL_H7/URBAN/TMIN/"
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
+puntos_sp <- as(puntos, "Spatial")
+raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
+resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
+colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
 
-# raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/COASTAL_H7/TMAX/"
-# puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
-# puntos_sp <- as(puntos, "Spatial")
-# raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
-# resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
-# colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
-# 
-# resultados$ID <- puntos$indictv
-# resultados$X <- st_coordinates(puntos)[,1]
-# resultados$Y <- st_coordinates(puntos)[,2]
-# 
-# for (i in 1:length(raster_files)) {
-#   raster_layer <- raster(raster_files[i])
-#   valores <- terra::extract(raster_layer, puntos_sp)
-#   resultados[, i + 3] <- valores
-# }
-# 
-# resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
-# microclima2 <- resultados[,c(1,2,3,104)]
+resultados$ID <- puntos$indictv
+resultados$X <- st_coordinates(puntos)[,1]
+resultados$Y <- st_coordinates(puntos)[,2]
+
+for (i in 1:length(raster_files)) {
+  raster_layer <- raster(raster_files[i])
+  valores <- terra::extract(raster_layer, puntos_sp)
+  resultados[, i + 3] <- valores
+}
+
+resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
+microclima_URBAN_CE <- resultados[,c(1,2,3,104)]
+colnames(microclima_URBAN_CE) <- c("ID","X", "Y", "Micr_URBAN_CE")
+
+rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
+
+# Microclima ENF NCE ----
+# Evergreen Needleleaf Forest sin efectos de la costa
+
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/NCOASTAL_H7/ENF/TMIN/"
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
+puntos_sp <- as(puntos, "Spatial")
+raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
+
+resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
+colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
+
+resultados$ID <- puntos$indictv
+resultados$X <- st_coordinates(puntos)[,1]
+resultados$Y <- st_coordinates(puntos)[,2]
+
+for (i in 1:length(raster_files)) {
+  raster_layer <- raster(raster_files[i])
+  valores <- terra::extract(raster_layer, puntos_sp)
+  resultados[, i + 3] <- valores
+}
+
+resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
+
+microclima_ENF_NCE <- resultados[,c(1,2,3,104)]
+colnames(microclima_ENF_NCE) <- c("ID","X", "Y", "Micr_ENF_NCE")
+
+rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
+
+# Microclima ENF CE ----
+# Evergreen Needleleaf Forest con efectos de la costa
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/COASTAL_H7/ENF/TMIN/"
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
+puntos_sp <- as(puntos, "Spatial")
+raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
+resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
+colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
+
+resultados$ID <- puntos$indictv
+resultados$X <- st_coordinates(puntos)[,1]
+resultados$Y <- st_coordinates(puntos)[,2]
+
+for (i in 1:length(raster_files)) {
+  raster_layer <- raster(raster_files[i])
+  valores <- terra::extract(raster_layer, puntos_sp)
+  resultados[, i + 3] <- valores
+}
+
+resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
+microclima_ENF_CE <- resultados[,c(1,2,3,104)]
+colnames(microclima_ENF_CE) <- c("ID","X", "Y", "Micr_ENF_CE")
+rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
+
+# Microclima OS NCE ----
+# Open shrublands sin efectos de la costa
+
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/NCOASTAL_H7/SRUBLAND/TMIN/"
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
+puntos_sp <- as(puntos, "Spatial")
+raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
+resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
+colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
+resultados$ID <- puntos$indictv
+resultados$X <- st_coordinates(puntos)[,1]
+resultados$Y <- st_coordinates(puntos)[,2]
+
+for (i in 1:length(raster_files)) {
+  raster_layer <- raster(raster_files[i])
+  valores <- terra::extract(raster_layer, puntos_sp)
+  resultados[, i + 3] <- valores
+}
+
+resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
+
+microclima_OS_NCE <- resultados[,c(1,2,3,104)]
+colnames(microclima_OS_NCE) <- c("ID","X", "Y", "Micr_OS_NCE")
+rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
+
+# Microclima OS CE ----
+# Open shrublands con efectos de la costa
+raster_folder <- "B:/A_ALBERT/CLIMA_DOWNSCALING/MICROCLIMA/COASTAL_H7/SRUBLAND/TMIN/"
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
+puntos_sp <- as(puntos, "Spatial")
+raster_files <- list.files(raster_folder, pattern = "\\.tif$", full.names = TRUE)
+resultados <- data.frame(matrix(ncol = 103, nrow = nrow(puntos)))
+colnames(resultados) <- c("ID", "X", "Y", basename(raster_files))
+
+resultados$ID <- puntos$indictv
+resultados$X <- st_coordinates(puntos)[,1]
+resultados$Y <- st_coordinates(puntos)[,2]
+
+for (i in 1:length(raster_files)) {
+  raster_layer <- raster(raster_files[i])
+  valores <- terra::extract(raster_layer, puntos_sp)
+  resultados[, i + 3] <- valores
+}
+
+resultados$TMAX <- rowMeans(resultados[, 4:(3 + length(raster_files))], na.rm = TRUE)
+microclima_OS_CE <- resultados[,c(1,2,3,104)]
+colnames(microclima_OS_CE) <- c("ID","X", "Y", "Micr_OS_CE")
+rm(raster_folder, puntos, puntos_sp, raster_files, raster_layer, valores, resultados, i)
 
 
 # Machispline ----
@@ -304,38 +521,53 @@ colnames(terraclimate) <- c("ID","X", "Y", "Terraclimate")
 rm(puntos, puntos_sp)
 
 
-# Unificar
-tmin <-  cbind(machispline, easyclimate, AEMET, terraclimate, microclima1 )
+# Unificar ----
 
-tmin <- tmin[,c(1:7,11,15,19,23)]
+tmin <-  cbind(machispline, AEMET, terraclimate, microclima_ENF_CE,
+               microclima_ENF_NCE,microclima_OS_CE,microclima_URBAN_CE,
+               microclima_URBAN_NCE)
+colnames(tmin)
+tmin <- tmin[,c(1:7,11,15,19,23,27,31,35)]
 
 colnames(tmin) <- c("ID", "X", "Y", "Machispline_A_S_A_G_T", 
-                   "Machispline_A_S_A_T", "Machispline_A_S_T", 
-                   "Mean_Machispline", "Easyclimate", 
-                   "AEMET","Terraclimate", "Microclima_NCE")
+                    "Machispline_A_S_A_T", "Machispline_A_S_T", 
+                    "Mean_Machispline", "AEMET","Terraclimate",
+                    "microclima_ENF_CE", "microclima_ENF_NCE",
+                    "microclima_OS_CE", "microclima_URBAN_CE",
+                    "microclima_URBAN_NCE")
 
 
 tmin <- mutate(tmin, "N" = seq(1, 96,1))
-#write.csv2(tmin, "B:/A_ALBERT/ALL_TMIN_8_2012.csv")
-all <- tmin
 
-# Resultados ----
+
+#write.csv2(tmin, "B:/A_ALBERT/ALL_TMIN_8_2012.csv")
+all <- tmax
+
+# RESULTADOS ----
 all_long <- all %>%
   dplyr::select(N, Machispline_A_S_A_G_T, 
                 Machispline_A_S_A_T, Machispline_A_S_T, 
-                Mean_Machispline, Easyclimate, 
-                AEMET,Terraclimate, Microclima_NCE) %>%
+                Mean_Machispline, AEMET, Terraclimate,
+                microclima_ENF_CE, microclima_ENF_NCE,
+                microclima_OS_CE, microclima_URBAN_CE, microclima_URBAN_NCE) %>%
   tidyr::gather(key = "Variable", value = "Valor", -N)
 
 # Graficos----
 # Grafico TMAX por estacion
+
 ggplot(all_long, aes(x = N, y = Valor, color = Variable)) +
   geom_line() +
   labs(x = "ID Estación",
        y = "Tmin (ºC)",
        color = "Variable") +
+  geom_text_repel(data = all_long %>% group_by(Variable) %>% summarise(N = max(N), Valor = mean(Valor)),
+                  aes(label = Variable),
+                  nudge_y = 0.5,   # Ajusta esta opción para un mejor posicionamiento
+                  direction = "y",
+                  hjust = 0,
+                  segment.color = 'grey50') +
   theme(legend.position = "top",
-          panel.background = element_rect(fill = "white",
+          panel.background = element_rect(fill = "gray70",
                                           colour = "white",
                                           size = 0.5, linetype = "solid"),
         panel.grid.major.y = element_line(size = 0.5, linetype = 'solid',
