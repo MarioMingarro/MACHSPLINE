@@ -255,24 +255,42 @@ colnames(terraclimate) <- c("ID","X", "Y", "Terraclimate")
 
 rm(puntos, puntos_sp)
 
+# CHELSA ----
+puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")
+puntos_sp <- as(puntos, "Spatial")
+
+chelsa <- raster::raster("B:/A_ALBERT/CLIMA_DOWNSCALING/CHELSA/Tmax_2012_08.tif")
+
+names(chelsa) <- paste0("CHELSA")
+chelsa <- terra::extract(chelsa, puntos_sp)
+chelsa <- cbind(puntos, chelsa)
+chelsa <- as.data.frame(chelsa)
+chelsa <- chelsa[, c(2,26:28)]
+colnames(chelsa) <- c("ID","X", "Y", "Chelsa")
+
+rm(puntos, puntos_sp)
 
 # Unificar ----
-tmax <-  cbind(machispline, AEMET, terraclimate, microclima_ENF_CE,
-               microclima_ENF_NCE,microclima_OS_CE,microclima_URBAN_CE,
-               microclima_URBAN_NCE)
-colnames(tmax)
-tmax <- tmax[,c(1:7,11,15,19,23,27,31,35)]
+tmax <-  cbind(AEMET, chelsa, easyclimate, machispline,         
+               microclima_ENF_CE, microclima_ENF_NCE, microclima_OS_CE, microclima_OS_NCE,   
+               microclima_URBAN_CE, microclima_URBAN_NCE, terraclimate )
 
-colnames(tmax) <- c("ID", "X", "Y", "Machispline_A_S_A_G_T", 
-                   "Machispline_A_S_A_T", "Machispline_A_S_T", 
-                   "Mean_Machispline", "AEMET","Terraclimate",
-                   "microclima_ENF_CE", "microclima_ENF_NCE",
-                   "microclima_OS_CE", "microclima_URBAN_CE",
-                   "microclima_URBAN_NCE")
+
+
+colnames(tmax[,c(1:4,8,12,16:19,23,27,31,35,39,43,47)])
+tmax <- tmax[,c(1:4,8,12,16:19,23,27,31,35,39,43,47)]
+
+colnames(tmax) <- c("ID","X","Y","AEMET","Chelsa","Easyclimate",
+                    "Machispline_A_S_A_G_T","Machispline_A_S_A_T",
+                    "Machispline_A_S_T","Mean_Machispline",
+                    "Microclima_ENF_CE","Microclima_ENF_NCE",
+                    "Microclima_OS_CE","Microclima_OS_NCE",
+                    "Microclima_URBAN_CE","Microclima_URBAN_NCE",
+                    "Terraclimate")
 
 
 tmax <- mutate(tmax, "N" = seq(1, 96,1))
-#write.csv2(tmax, "B:/A_ALBERT/ALL_TMAX_8_2012.csv")
+write.csv2(tmax, "B:/A_ALBERT/ALL_TMAX_8_2012_v2.csv")
 
 # TMIN ----
 # Microclima URBAN NCE ----
@@ -542,15 +560,18 @@ tmin <- mutate(tmin, "N" = seq(1, 96,1))
 
 #write.csv2(tmin, "B:/A_ALBERT/ALL_TMIN_8_2012.csv")
 all <- tmax
-
+all <- tmin
 # RESULTADOS ----
 all_long <- all %>%
-  dplyr::select(N, Machispline_A_S_A_G_T, 
-                Machispline_A_S_A_T, Machispline_A_S_T, 
-                Mean_Machispline, AEMET, Terraclimate,
-                microclima_ENF_CE, microclima_ENF_NCE,
-                microclima_OS_CE, microclima_URBAN_CE, microclima_URBAN_NCE) %>%
+  dplyr::select(N, AEMET,Chelsa,Easyclimate,
+                Machispline_A_S_A_G_T,Machispline_A_S_A_T,
+                Machispline_A_S_T,Mean_Machispline,
+                Microclima_ENF_CE,Microclima_ENF_NCE,
+                Microclima_OS_CE,Microclima_OS_NCE,
+                Microclima_URBAN_CE,Microclima_URBAN_NCE,
+                Terraclimate) %>%
   tidyr::gather(key = "Variable", value = "Valor", -N)
+
 
 # Graficos----
 # Grafico TMAX por estacion
@@ -558,7 +579,7 @@ all_long <- all %>%
 ggplot(all_long, aes(x = N, y = Valor, color = Variable)) +
   geom_line() +
   labs(x = "ID Estación",
-       y = "Tmin (ºC)",
+       y = "Tmax (ºC)",
        color = "Variable") +
   geom_text_repel(data = all_long %>% group_by(Variable) %>% summarise(N = max(N), Valor = mean(Valor)),
                   aes(label = Variable),
@@ -575,6 +596,10 @@ ggplot(all_long, aes(x = N, y = Valor, color = Variable)) +
         panel.grid.minor.y = element_line(size = 0.25, linetype = 'solid',
                                         colour = "gray80"))+
   scale_color_brewer(palette = "Spectral")
+
+
+
+
 
 # Grafico elevación por estacion
 puntos <- st_read("B:/A_ALBERT/CLIMA_DOWNSCALING/estaciones_AE.shp")  
